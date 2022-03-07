@@ -9,6 +9,9 @@ import { CreateCommentDto } from './dtos/create.comment.dto';
 import { Comment } from './entities/comment.entity';
 import { UpdateParagraphDto } from './dtos/update.paragraph.dto';
 import { BadRequestException } from '@nestjs/common';
+import { FilterBlogDto } from './dtos/filter.blog.dto';
+import { FilterParagraphDto } from './dtos/filter.paragraph.dto';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class BlogService {
@@ -24,10 +27,47 @@ export class BlogService {
     return blog;
   }
 
+  async getBlogs(filter: FilterBlogDto): Promise<Blog[]> {
+    const { page, limit, ...rest } = filter;
+    const blog: Blog[] = await this.blogModel
+      .find(rest)
+      .limit(limit)
+      .skip((page - 1) * limit)
+      .select(['-__v']);
+    return blog;
+  }
+
   async createParagraph(body: CreateParagraphDto): Promise<Paragraph> {
     const paragraph: Paragraph = await this.paraModel.create(body);
     await paragraph.save();
     return paragraph;
+  }
+
+  async getParagraphs(id: string, filter: FilterParagraphDto) {
+    const { page, limit, ...rest } = filter;
+    const paragraph = await this.blogModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      {
+        $lookup: {
+          from: 'paragraphs',
+          localField: '_id',
+          foreignField: 'blog',
+          as: 'paragraphs',
+        },
+      },
+      {
+        $project: {
+          _id: '$_id',
+          author: '$author',
+          description: '$description',
+          title: '$title',
+          createdAt: '$createdAt',
+          paragraphs: { $slice: ['$paragraphs', (page - 1) * limit, limit] },
+        },
+      },
+    ]);
+    if (!paragraph.length) throw new BadRequestException('Invalid blog id.');
+    return paragraph[0];
   }
 
   async updateParagraph(
@@ -40,6 +80,13 @@ export class BlogService {
       paragraph[key] = body[key];
     });
     await paragraph.save();
+    return paragraph;
+  }
+
+  async deleteParagraph(id: string): Promise<Paragraph> {
+    const paragraph: Paragraph = await this.paraModel.findOne({ _id: id });
+    if (!paragraph) throw new BadRequestException('Invalid paragraph id.');
+    await paragraph.remove();
     return paragraph;
   }
 
