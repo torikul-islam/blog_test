@@ -10,6 +10,6 @@ import { Blog, BlogSchema } from './entities/blog.entity';
   ],
   controllers: [BlogController],
   providers: [BlogService],
-  exports: [],
+  exports: [BlogService],
 })
 export class BlogModule {}
