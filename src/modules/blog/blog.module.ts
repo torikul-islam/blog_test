@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { BlogController } from './blog.controller';
 import { BlogService } from './blog.service';
 import { Blog, BlogSchema } from './entities/blog.entity';
+import { CommentSchema } from './entities/comment.entity';
 import { Paragraph, ParagraphSchema } from './entities/paragraph.entity';
 
 @Module({
@@ -10,6 +11,7 @@ import { Paragraph, ParagraphSchema } from './entities/paragraph.entity';
     MongooseModule.forFeature([
       { name: Blog.name, schema: BlogSchema },
       { name: Paragraph.name, schema: ParagraphSchema },
+      { name: Comment.name, schema: CommentSchema },
     ]),
   ],
   controllers: [BlogController],
