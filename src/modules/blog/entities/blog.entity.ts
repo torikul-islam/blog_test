@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose from 'mongoose';
+import { Document, Schema as MongooseSchema, Types } from 'mongoose';
 
 @Schema({
   timestamps: true,
@@ -25,6 +26,12 @@ export class Blog extends Document {
     type: String,
   })
   author: string;
+
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Paragraph',
+  })
+  paragraphs: Types.ObjectId[];
 }
 
 export const BlogSchema = SchemaFactory.createForClass(Blog);
