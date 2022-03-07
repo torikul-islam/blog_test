@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo:4.2.5
+    container_name: mongo
+    ports:
+      - 27017:27017
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: blog
+    container_name: blog
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+      - MONGO_URI=mongodb+srv://torikul:c5SwtQyt-DujZJg@cluster0.7skih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
+      - DB_NAME=blog_test
+    ports:
+      - '3000:3000'
+    command: bash -c "npm run start:dev"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
