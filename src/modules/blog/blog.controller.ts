@@ -54,7 +54,7 @@ export class BlogController {
   @Get('/:id/paragraph')
   async getParagraphs(
     @Param('id') id: string,
-    @Body() filter: FilterParagraphDto,
+    @Query() filter: FilterParagraphDto,
   ) {
     return await this.blogService.getParagraphs(id, filter);
   }
