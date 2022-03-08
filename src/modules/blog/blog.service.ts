@@ -38,7 +38,22 @@ export class BlogService {
   }
 
   async createParagraph(body: CreateParagraphDto): Promise<Paragraph> {
+    const seq: Paragraph[] = await this.paraModel
+      .find({ blog: body.blog })
+      .select('id seq');
     const paragraph: Paragraph = await this.paraModel.create(body);
+    if (body.seq) {
+      seq.splice(body.seq - 1, 0, paragraph);
+      await this.paraModel.bulkWrite(
+        seq.map((doc, i) => ({
+          updateOne: {
+            filter: { _id: doc._id },
+            update: { seq: i + 1 },
+            upsert: true,
+          },
+        })),
+      );
+    } else paragraph.seq += seq.length;
     await paragraph.save();
     return paragraph;
   }

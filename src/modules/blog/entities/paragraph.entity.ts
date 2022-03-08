@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
 import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 
 @Schema({
@@ -18,6 +19,12 @@ export class Paragraph extends Document {
     type: String,
   })
   body: string;
+
+  @Prop({
+    type: Number,
+    required: [true, 'seq is required.'],
+  })
+  seq: number;
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,
