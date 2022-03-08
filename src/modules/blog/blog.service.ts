@@ -40,6 +40,7 @@ export class BlogService {
   async createParagraph(body: CreateParagraphDto): Promise<Paragraph> {
     const seq: Paragraph[] = await this.paraModel
       .find({ blog: body.blog })
+      .sort({ seq: 1 })
       .select('id seq');
     const paragraph: Paragraph = await this.paraModel.create(body);
     if (body.seq) {
@@ -101,6 +102,21 @@ export class BlogService {
   async deleteParagraph(id: string): Promise<Paragraph> {
     const paragraph: Paragraph = await this.paraModel.findOne({ _id: id });
     if (!paragraph) throw new BadRequestException('Invalid paragraph id.');
+    const seq: Paragraph[] = await this.paraModel
+      .find({ blog: paragraph.blog })
+      .sort({ seq: 1 })
+      .select('id seq');
+    const index = seq.findIndex((doc) => String(doc._id) === id);
+    seq.splice(index, 1);
+    await this.paraModel.bulkWrite(
+      seq.map((doc, i) => ({
+        updateOne: {
+          filter: { _id: doc._id },
+          update: { seq: i + 1 },
+          upsert: true,
+        },
+      })),
+    );
     await paragraph.remove();
     return paragraph;
   }
